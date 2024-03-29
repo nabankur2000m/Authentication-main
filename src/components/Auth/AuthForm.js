@@ -11,51 +11,55 @@ const AuthForm = () => {
 
   const switchAuthModeHandler = () => {
     setIsLogin((prevState) => !prevState);
-    setModalMessage(''); 
+    setModalMessage('');
   };
 
- 
   const submitHandler = (event) => {
     event.preventDefault();
-    setIsLoading(true); 
-    setModalMessage(''); 
+    setIsLoading(true);
+    setModalMessage('');
+
     const enteredEmail = emailInputRef.current.value;
     const enteredPassword = passwordInputRef.current.value;
 
+    let url;
     if (isLogin) {
-     
+      
+      url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDo8G727k7YUfG19hcgPOG5qJXJuU8cLLM`;
     } else {
-      fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDo8G727k7YUfG19hcgPOG5qJXJuU8cLLM', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: enteredEmail,
-          password: enteredPassword,
-          returnSecureToken: true
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(res => {
-        setIsLoading(false);
-        if (res.ok) {
-          return res.json();
-        } else {
-          return res.json().then(data => {
-            let errorMessage = "Authentication failed!";
-            
-            if (data && data.error && data.error.message) {
-              errorMessage = data.error.message;
-            }
-            throw new Error(errorMessage);
-          });
-        }
-      })
-      .catch(err => {
-    
-        setModalMessage(err.message);
-      });
+      
+      url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDo8G727k7YUfG19hcgPOG5qJXJuU8cLLM`;
     }
+
+    fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        email: enteredEmail,
+        password: enteredPassword,
+        returnSecureToken: true
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    .then(async res => {
+      setIsLoading(false);
+      const data = await res.json();
+      if (res.ok) {
+        console.log('idToken:', data.idToken);
+        return res.json();
+      } else {
+        const data = await res.json();
+        let errorMessage = "Authentication failed!";
+        if (data && data.error && data.error.message) {
+          errorMessage = data.error.message;
+        }
+        throw new Error(errorMessage);
+      }
+    })
+    .catch(err => {
+      setModalMessage(err.message);
+    });
   };
 
   return (
