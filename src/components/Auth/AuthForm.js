@@ -1,8 +1,11 @@
 import { useState, useRef } from 'react';
 import classes from './AuthForm.module.css';
 import SimpleModal from './SimpleModal';
+import { useAuth } from '../../Context/AuthContext';
 
 const AuthForm = () => {
+
+  const { login } = useAuth();
   const emailInputRef = useRef();
   const passwordInputRef = useRef();
   const [isLogin, setIsLogin] = useState(true);
@@ -43,13 +46,13 @@ const AuthForm = () => {
       },
     })
     .then(async res => {
-      setIsLoading(false);
       const data = await res.json();
+      setIsLoading(false);
       if (res.ok) {
+        login(data.idToken);
         console.log('idToken:', data.idToken);
         return res.json();
       } else {
-        const data = await res.json();
         let errorMessage = "Authentication failed!";
         if (data && data.error && data.error.message) {
           errorMessage = data.error.message;
